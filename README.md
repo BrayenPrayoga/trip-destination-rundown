@@ -75,6 +75,7 @@ Perintah umum:
 
 ```bash
 docker compose logs -f app
+docker compose logs -f db
 docker compose down
 ```
 

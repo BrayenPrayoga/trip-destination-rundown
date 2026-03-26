@@ -5,6 +5,9 @@ services:
       dockerfile: Dockerfile
     container_name: trip-destination-rundown-app
     restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "67:8000"
     environment:
@@ -14,15 +17,30 @@ services:
       APP_URL: http://10.10.1.242:67
       LOG_CHANNEL: stack
       LOG_LEVEL: info
-      DB_CONNECTION: sqlite
-      DB_DATABASE: /var/www/html/database/database.sqlite
-      CACHE_STORE: database
-      SESSION_DRIVER: database
-      QUEUE_CONNECTION: database
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: travel_jogja
+      DB_USERNAME: postgres
+      DB_PASSWORD: "Admin1234%"
     volumes:
       - app_storage:/var/www/html/storage
-      - app_database:/var/www/html/database
+  db:
+    image: postgres:16-alpine
+    container_name: trip-destination-rundown-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: travel_jogja
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "Admin1234%"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d travel_jogja"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    volumes:
+      - pg_data:/var/lib/postgresql/data
 
 volumes:
   app_storage:
-  app_database:
+  pg_data:

@@ -12,8 +12,8 @@ RUN npm run build
 FROM php:8.4-cli-alpine AS app
 WORKDIR /var/www/html
 
-RUN apk add --no-cache bash git unzip libzip-dev icu-dev oniguruma-dev sqlite sqlite-dev \
-    && docker-php-ext-install pdo pdo_sqlite mbstring intl zip
+RUN apk add --no-cache bash git unzip libzip-dev icu-dev oniguruma-dev postgresql-dev \
+    && docker-php-ext-install pdo pdo_pgsql mbstring intl zip
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -23,10 +23,9 @@ COPY --from=frontend-builder /app/public/build ./public/build
 
 RUN rm -f .env \
     && cp .env.example .env \
-    && mkdir -p database storage/framework/{cache,sessions,views} storage/logs bootstrap/cache \
-    && touch database/database.sqlite \
+    && mkdir -p storage/framework/{cache,sessions,views} storage/logs bootstrap/cache \
     && chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 storage bootstrap/cache database
+    && chmod -R 775 storage bootstrap/cache
 
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
