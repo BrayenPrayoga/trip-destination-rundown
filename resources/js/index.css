@@ -1,0 +1,208 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-cream: #d7cec1;
+    --color-sand: #d2bca2;
+    --color-tan: #cfaa83;
+    --color-brown: #af8a68;
+    --color-deep-brown: #8a5f41;
+    --color-terracotta: #9c6a46;
+    --color-dark: #3f2b1e;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Manrope', sans-serif;
+    background-color: var(--color-cream);
+    color: var(--color-dark);
+  }
+
+  .font-display {
+    font-family: 'Playfair Display', serif;
+  }
+}
+
+@layer utilities {
+  .bg-pattern {
+    background-image:
+      radial-gradient(circle at 15% 15%, rgba(156, 106, 70, 0.15) 0%, transparent 36%),
+      radial-gradient(circle at 85% 10%, rgba(138, 95, 65, 0.12) 0%, transparent 35%),
+      radial-gradient(circle at 70% 85%, rgba(175, 138, 104, 0.13) 0%, transparent 35%),
+      linear-gradient(135deg, #d7cec1 0%, #f3ede5 45%, #d2bca2 100%);
+  }
+
+  .glass-card {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .mobile-snap {
+    scroll-snap-type: x mandatory;
+  }
+
+  .mobile-snap > * {
+    scroll-snap-align: start;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-cream);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-brown);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-terracotta);
+}
+
+/* Dark mode */
+.dark {
+  --color-cream: #1f1611;
+  --color-dark: #eadfce;
+}
+
+.dark body {
+  background-color: var(--color-cream);
+  color: var(--color-dark);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.5s ease forwards;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, #f0e6d6 25%, #fdf8f0 50%, #f0e6d6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.animate-modal-slide-up {
+  animation: modalSlideUp 0.3s ease-out forwards;
+}
+
+
+/* Stagger animations */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
+
+/* Modal backdrop */
+.modal-backdrop {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Flatpickr */
+input.flatpickr-input[readonly] {
+  cursor: pointer;
+}
+
+.flatpickr-calendar {
+  border: 1px solid #cfaa83;
+  box-shadow: 0 16px 40px rgba(63, 43, 30, 0.15);
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+  background: #8a5f41;
+  border-color: #8a5f41;
+}
+
+.flatpickr-day:hover {
+  background: #eadfce;
+}
+
+.dark .flatpickr-calendar {
+  background: #2a1f19;
+  border-color: #6b4d39;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+.dark .flatpickr-months .flatpickr-month,
+.dark .flatpickr-current-month .flatpickr-monthDropdown-months,
+.dark .flatpickr-weekday,
+.dark span.flatpickr-weekday,
+.dark .flatpickr-day,
+.dark .flatpickr-time input,
+.dark .flatpickr-time .flatpickr-time-separator {
+  color: #eadfce;
+}
+
+.dark .flatpickr-day:hover {
+  background: #3b2a21;
+}
+
+.dark .flatpickr-day.selected,
+.dark .flatpickr-day.startRange,
+.dark .flatpickr-day.endRange {
+  background: #af8a68;
+  border-color: #af8a68;
+  color: #1f1611;
+}
