@@ -75,9 +75,10 @@ Perintah umum:
 
 ```bash
 docker compose logs -f app
-docker compose logs -f db
 docker compose down
 ```
+
+Koneksi database mengikuti file `.env` project (Docker Compose tidak lagi membuat container PostgreSQL).
 
 Catatan untuk CentOS 7:
 - Install Docker Engine + Docker Compose plugin (atau `docker-compose` legacy).
