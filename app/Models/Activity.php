@@ -13,11 +13,13 @@ class Activity extends Model
         'title',
         'description',
         'datetime',
+        'end_datetime',
         'maps_url',
         'tiktok_url',
     ];
 
     protected $casts = [
         'datetime' => 'datetime',
+        'end_datetime' => 'datetime',
     ];
 }

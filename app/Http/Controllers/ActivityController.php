@@ -37,6 +37,7 @@ class ActivityController extends Controller
             'title'       => 'required|string|max:255',
             'description' => 'nullable|string',
             'datetime'    => 'required|date',
+            'end_datetime' => 'nullable|date|after_or_equal:datetime',
             'maps_url'    => 'nullable|url|max:2048',
             'tiktok_url'  => 'nullable|url|max:2048',
         ]);
@@ -70,6 +71,7 @@ class ActivityController extends Controller
             'title'       => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
             'datetime'    => 'sometimes|required|date',
+            'end_datetime' => 'nullable|date|after_or_equal:datetime',
             'maps_url'    => 'nullable|url|max:2048',
             'tiktok_url'  => 'nullable|url|max:2048',
         ]);

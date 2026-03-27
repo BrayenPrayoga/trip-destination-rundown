@@ -7,6 +7,7 @@ const initialForm = {
   title: '',
   description: '',
   datetime: '',
+  end_datetime: '',
   maps_url: '',
   tiktok_url: '',
 }
@@ -28,7 +29,8 @@ const MapPinIcon = ({ className = 'w-4 h-4' }) => (
 export default function ActivityForm({ activity, onSubmit, onClose, loading, darkMode }) {
   const [form, setForm] = useState(initialForm)
   const [errors, setErrors] = useState({})
-  const dateTimeInputRef = useRef(null)
+  const startDateTimeInputRef = useRef(null)
+  const endDateTimeInputRef = useRef(null)
 
   const formatDateTimeForApi = (date) => {
     const pad = (n) => String(n).padStart(2, '0')
@@ -38,10 +40,12 @@ export default function ActivityForm({ activity, onSubmit, onClose, loading, dar
   useEffect(() => {
     if (activity) {
       const dt = parseActivityDateTime(activity.datetime)
+      const endDt = parseActivityDateTime(activity.end_datetime)
       setForm({
         title: activity.title || '',
         description: activity.description || '',
         datetime: dt ? formatDateTimeForApi(dt) : '',
+        end_datetime: endDt ? formatDateTimeForApi(endDt) : '',
         maps_url: activity.maps_url || '',
         tiktok_url: activity.tiktok_url || '',
       })
@@ -52,9 +56,9 @@ export default function ActivityForm({ activity, onSubmit, onClose, loading, dar
   }, [activity])
 
   useEffect(() => {
-    if (!dateTimeInputRef.current) return
+    if (!startDateTimeInputRef.current || !endDateTimeInputRef.current) return
 
-    const picker = flatpickr(dateTimeInputRef.current, {
+    const buildPicker = (element, field, placeholder) => flatpickr(element, {
       locale: Indonesian,
       enableTime: true,
       time_24hr: true,
@@ -62,25 +66,37 @@ export default function ActivityForm({ activity, onSubmit, onClose, loading, dar
       altInput: true,
       altFormat: 'j F Y, H:i',
       allowInput: false,
-      defaultDate: form.datetime || null,
+      defaultDate: form[field] || null,
       onChange: (selectedDates) => {
         const selected = selectedDates[0]
-        setForm((prev) => ({ ...prev, datetime: selected ? formatDateTimeForApi(selected) : '' }))
-        setErrors((prev) => (prev.datetime ? { ...prev, datetime: '' } : prev))
+        setForm((prev) => ({ ...prev, [field]: selected ? formatDateTimeForApi(selected) : '' }))
+        setErrors((prev) => (prev[field] ? { ...prev, [field]: '' } : prev))
       },
       onReady: (_, __, instance) => {
-        instance.altInput?.setAttribute('placeholder', 'Pilih tanggal & waktu')
+        instance.altInput?.setAttribute('placeholder', placeholder)
       },
     })
 
-    return () => picker.destroy()
+    const startPicker = buildPicker(startDateTimeInputRef.current, 'datetime', 'Pilih waktu mulai')
+    const endPicker = buildPicker(endDateTimeInputRef.current, 'end_datetime', 'Pilih waktu selesai')
+
+    return () => {
+      startPicker.destroy()
+      endPicker.destroy()
+    }
   }, [])
 
   useEffect(() => {
-    const input = dateTimeInputRef.current
+    const input = startDateTimeInputRef.current
     if (!input || !input._flatpickr) return
     input._flatpickr.setDate(form.datetime || null, false, 'Y-m-d H:i:S')
   }, [form.datetime])
+
+  useEffect(() => {
+    const input = endDateTimeInputRef.current
+    if (!input || !input._flatpickr) return
+    input._flatpickr.setDate(form.end_datetime || null, false, 'Y-m-d H:i:S')
+  }, [form.end_datetime])
 
   const isValidUrl = (url) => {
     try {
@@ -95,6 +111,14 @@ export default function ActivityForm({ activity, onSubmit, onClose, loading, dar
     const newErrors = {}
     if (!form.title.trim()) newErrors.title = 'Nama lokasi wajib diisi'
     if (!form.datetime) newErrors.datetime = 'Tanggal & waktu wajib diisi'
+    if (!form.end_datetime) newErrors.end_datetime = 'Tanggal & waktu selesai wajib diisi'
+    if (form.datetime && form.end_datetime) {
+      const start = parseActivityDateTime(form.datetime)
+      const end = parseActivityDateTime(form.end_datetime)
+      if (start && end && end < start) {
+        newErrors.end_datetime = 'Waktu selesai harus setelah waktu mulai'
+      }
+    }
     if (form.maps_url && !isValidUrl(form.maps_url)) newErrors.maps_url = 'URL Google Maps tidak valid'
     if (form.tiktok_url && !isValidUrl(form.tiktok_url)) newErrors.tiktok_url = 'URL TikTok tidak valid'
     setErrors(newErrors)
@@ -169,15 +193,29 @@ export default function ActivityForm({ activity, onSubmit, onClose, loading, dar
             <div>
               <label className={`${labelClass} flex items-center gap-2`}>
                 <CalendarIcon className="w-4 h-4" />
-                <span>Tanggal & Waktu <span className="text-red-400">*</span></span>
+                <span>Tanggal & Waktu Mulai <span className="text-red-400">*</span></span>
               </label>
               <input
-                ref={dateTimeInputRef}
+                ref={startDateTimeInputRef}
                 type="text"
                 name="datetime"
                 className={inputClass('datetime')}
               />
               {errors.datetime && <p className="mt-1 text-xs text-red-400">{errors.datetime}</p>}
+            </div>
+
+            <div>
+              <label className={`${labelClass} flex items-center gap-2`}>
+                <CalendarIcon className="w-4 h-4" />
+                <span>Tanggal & Waktu Selesai <span className="text-red-400">*</span></span>
+              </label>
+              <input
+                ref={endDateTimeInputRef}
+                type="text"
+                name="end_datetime"
+                className={inputClass('end_datetime')}
+              />
+              {errors.end_datetime && <p className="mt-1 text-xs text-red-400">{errors.end_datetime}</p>}
             </div>
 
             <div>

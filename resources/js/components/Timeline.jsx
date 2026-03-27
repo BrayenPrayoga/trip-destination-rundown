@@ -11,13 +11,13 @@ const CalendarIcon = ({ className = 'w-4 h-4' }) => (
 
 const EmptyState = ({ darkMode, onAdd }) => (
   <div className="flex flex-col items-center justify-center py-14 px-4 text-center animate-fade-in">
-    <div className={`w-16 h-16 rounded-2xl mb-4 flex items-center justify-center ${darkMode ? 'bg-[#3b2a21] text-[#d2bca2]' : 'bg-[#eadfce] text-[#6a4a35]'}`}>
+    <div className={`w-16 h-16 rounded-2xl mb-4 flex items-center justify-center ${darkMode ? 'bg-[#3b2a21] text-[#3b2a21]' : 'bg-[#eadfce] text-[#6a4a35]'}`}>
       <CalendarIcon className="w-7 h-7" />
     </div>
-    <h3 className={`font-display text-2xl font-semibold mb-2 ${darkMode ? 'text-[#eadfce]' : 'text-[#3f2b1e]'}`}>
+    <h3 className={`font-display text-2xl font-semibold mb-2 ${darkMode ? 'text-[#3f2b1e]' : 'text-[#3f2b1e]'}`}>
       Belum Ada Kegiatan
     </h3>
-    <p className={`text-sm max-w-xs mb-6 ${darkMode ? 'text-[#bda58f]' : 'text-[#7d6049]'}`}>
+    <p className={`text-sm max-w-xs mb-6 ${darkMode ? 'text-[#7d6049]' : 'text-[#7d6049]'}`}>
       Mulai rencanakan perjalananmu. Tambahkan destinasi pertamamu.
     </p>
     <button

@@ -168,11 +168,24 @@ export default function ActivityCard({ activity, index, onEdit, onDelete, darkMo
             <div className={`absolute top-0 right-0 w-20 h-20 rounded-bl-[40px] rounded-tr-3xl opacity-30 ${darkMode ? 'bg-gradient-to-bl from-[#5f432f]/45' : 'bg-gradient-to-bl from-[#eadfce]'}`} />
 
             <div className="flex items-start justify-between mb-3">
-              <div className={`inline-flex flex-wrap items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium ${darkMode ? 'bg-[#5b402f] text-[#f4e6d6] border border-[#7b5a43]' : 'bg-[#eadfce] text-[#6a4a35]'}`}>
-                <Icon.clock className="w-4 h-4" />
-                <span>{formatTime(activity.datetime)}</span>
-                <span className={`mx-1 ${darkMode ? 'text-[#d0b49a]' : 'text-[#af8a68]'}`}>•</span>
-                <span className="text-xs">{formatDate(activity.datetime)}</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className={`inline-flex flex-wrap items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium ${darkMode ? 'bg-[#5b402f] text-[#f4e6d6] border border-[#7b5a43]' : 'bg-[#eadfce] text-[#6a4a35]'}`}>
+                  <Icon.clock className="w-4 h-4" />
+                  <span className="text-xs font-semibold">Mulai</span>
+                  <span>{formatTime(activity.datetime)}</span>
+                  <span className={`mx-1 ${darkMode ? 'text-[#d0b49a]' : 'text-[#af8a68]'}`}>•</span>
+                  <span className="text-xs">{formatDate(activity.datetime)}</span>
+                </div>
+
+                {activity.end_datetime && (
+                  <div className={`inline-flex flex-wrap items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium ${darkMode ? 'bg-[#4a3527] text-[#eadfce] border border-[#6b4f3b]' : 'bg-[#f1e6d8] text-[#6a4a35] border border-[#cfaa83]/60'}`}>
+                    <Icon.clock className="w-4 h-4" />
+                    <span className="text-xs font-semibold">Selesai</span>
+                    <span>{formatTime(activity.end_datetime)}</span>
+                    <span className={`mx-1 ${darkMode ? 'text-[#d0b49a]' : 'text-[#af8a68]'}`}>•</span>
+                    <span className="text-xs">{formatDate(activity.end_datetime)}</span>
+                  </div>
+                )}
               </div>
             </div>
 
