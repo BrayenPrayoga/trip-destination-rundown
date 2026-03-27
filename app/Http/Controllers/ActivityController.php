@@ -38,6 +38,7 @@ class ActivityController extends Controller
             'description' => 'nullable|string',
             'datetime'    => 'required|date',
             'maps_url'    => 'nullable|url|max:2048',
+            'tiktok_url'  => 'nullable|url|max:2048',
         ]);
 
         $activity = Activity::create($validated);
@@ -70,6 +71,7 @@ class ActivityController extends Controller
             'description' => 'nullable|string',
             'datetime'    => 'sometimes|required|date',
             'maps_url'    => 'nullable|url|max:2048',
+            'tiktok_url'  => 'nullable|url|max:2048',
         ]);
 
         $activity->update($validated);

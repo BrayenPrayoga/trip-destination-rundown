@@ -30,19 +30,25 @@ const EmptyState = ({ darkMode, onAdd }) => (
 )
 
 const groupByDate = (activities) => {
-  const groups = {}
+  const groups = new Map()
   activities.forEach((act) => {
     const date = parseActivityDateTime(act.datetime)
     if (!date) return
-    const dateKey = date.toLocaleDateString('id-ID', {
+
+    const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    const dateLabel = date.toLocaleDateString('id-ID', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     })
-    if (!groups[dateKey]) groups[dateKey] = []
-    groups[dateKey].push(act)
+
+    if (!groups.has(dateKey)) {
+      groups.set(dateKey, { dateKey, dateLabel, items: [] })
+    }
+    groups.get(dateKey).items.push(act)
   })
-  return groups
+
+  return Array.from(groups.values()).sort((a, b) => new Date(a.dateKey) - new Date(b.dateKey))
 }
 
 export default function Timeline({ activities, loading, onEdit, onDelete, onAdd, darkMode }) {
@@ -62,8 +68,8 @@ export default function Timeline({ activities, loading, onEdit, onDelete, onAdd,
 
   return (
     <div>
-      {Object.entries(grouped).map(([dateLabel, items], groupIdx) => (
-        <div key={dateLabel} className="mb-3">
+      {grouped.map(({ dateKey, dateLabel, items }, groupIdx) => (
+        <div key={dateKey} className="mb-3">
           <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
             <div
               className={`
@@ -76,6 +82,14 @@ export default function Timeline({ activities, loading, onEdit, onDelete, onAdd,
             >
               <CalendarIcon className="w-3.5 h-3.5" />
               <span>{dateLabel}</span>
+            </div>
+            <div
+              className={`
+                inline-flex items-center px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-semibold
+                ${darkMode ? 'bg-[#4a3527] text-[#e6d2b9] border border-[#6b4f3b]' : 'bg-[#eadfce] text-[#6a4a35] border border-[#cfaa83]/55'}
+              `}
+            >
+              Hari Ke {groupIdx + 1}
             </div>
             <div className={`flex-1 h-px ${darkMode ? 'bg-gradient-to-r from-[#5e4534] to-transparent' : 'bg-gradient-to-r from-[#af8a68] to-transparent'}`} />
           </div>

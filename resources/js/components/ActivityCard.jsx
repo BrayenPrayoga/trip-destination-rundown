@@ -57,6 +57,11 @@ const Icon = {
       <path d="M8 18c6 0 2-8 8-8" />
     </svg>
   ),
+  tiktok: ({ className = 'w-4 h-4' }) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M14.5 4h2.6c.4 1.6 1.4 2.7 2.9 3.1V9c-1.5-.1-2.8-.6-3.8-1.5v6.2a5.2 5.2 0 1 1-5.2-5.2c.4 0 .8 0 1.2.1v2.2a3 3 0 1 0 1.9 2.9V4Z" />
+    </svg>
+  ),
 }
 
 const getIcon = (title) => {
@@ -182,16 +187,34 @@ export default function ActivityCard({ activity, index, onEdit, onDelete, darkMo
             )}
 
             <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 mt-4 pt-4 border-t border-dashed border-[#cfaa83]/45">
-              {activity.maps_url && (
-                <a
-                  href={activity.maps_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-gradient-to-r from-[#8a5f41] to-[#9c6a46] text-white transition-all duration-200 hover:brightness-105 hover:shadow-lg hover:shadow-[#8a5f41]/20 active:scale-95"
-                >
-                  <Icon.route className="w-4 h-4" />
-                  <span>Buka di Maps</span>
-                </a>
+              {(activity.maps_url || activity.tiktok_url) && (
+                <div className="inline-flex items-center gap-2">
+                  {activity.maps_url && (
+                    <a
+                      href={activity.maps_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Buka Maps"
+                      aria-label="Buka Maps"
+                      className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-r from-[#8a5f41] to-[#9c6a46] text-white transition-all duration-200 hover:brightness-105 hover:shadow-lg hover:shadow-[#8a5f41]/20 active:scale-95"
+                    >
+                      <Icon.route className="w-4 h-4" />
+                    </a>
+                  )}
+
+                  {activity.tiktok_url && (
+                    <a
+                      href={activity.tiktok_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Buka TikTok"
+                      aria-label="Buka TikTok"
+                      className={`inline-flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-200 active:scale-95 ${darkMode ? 'bg-[#5b402f] text-[#f4e6d6] border border-[#7b5a43] hover:bg-[#6a4a35]' : 'bg-[#eadfce] text-[#3f2b1e] hover:bg-[#d2bca2]'}`}
+                    >
+                      <Icon.tiktok className="w-4 h-4" />
+                    </a>
+                  )}
+                </div>
               )}
 
               <div className="sm:ml-auto grid grid-cols-2 sm:flex items-center gap-2">

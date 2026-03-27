@@ -8,6 +8,7 @@ const initialForm = {
   description: '',
   datetime: '',
   maps_url: '',
+  tiktok_url: '',
 }
 
 const CalendarIcon = ({ className = 'w-4 h-4' }) => (
@@ -42,6 +43,7 @@ export default function ActivityForm({ activity, onSubmit, onClose, loading, dar
         description: activity.description || '',
         datetime: dt ? formatDateTimeForApi(dt) : '',
         maps_url: activity.maps_url || '',
+        tiktok_url: activity.tiktok_url || '',
       })
     } else {
       setForm(initialForm)
@@ -94,6 +96,7 @@ export default function ActivityForm({ activity, onSubmit, onClose, loading, dar
     if (!form.title.trim()) newErrors.title = 'Nama lokasi wajib diisi'
     if (!form.datetime) newErrors.datetime = 'Tanggal & waktu wajib diisi'
     if (form.maps_url && !isValidUrl(form.maps_url)) newErrors.maps_url = 'URL Google Maps tidak valid'
+    if (form.tiktok_url && !isValidUrl(form.tiktok_url)) newErrors.tiktok_url = 'URL TikTok tidak valid'
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -203,6 +206,19 @@ export default function ActivityForm({ activity, onSubmit, onClose, loading, dar
               <p className={`mt-1 text-xs ${darkMode ? 'text-[#c2a58c]' : 'text-[#8f755f]'}`}>
                 Tip: Buka Google Maps, klik lokasi, lalu salin link dari address bar.
               </p>
+            </div>
+
+            <div>
+              <label className={labelClass}>Link TikTok</label>
+              <input
+                type="url"
+                name="tiktok_url"
+                value={form.tiktok_url}
+                onChange={handleChange}
+                placeholder="https://www.tiktok.com/@username/video/..."
+                className={inputClass('tiktok_url')}
+              />
+              {errors.tiktok_url && <p className="mt-1 text-xs text-red-400">{errors.tiktok_url}</p>}
             </div>
 
             <div className="flex gap-3 pt-2">
