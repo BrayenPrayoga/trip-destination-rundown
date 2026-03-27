@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { parseActivityDateTime } from '../utils/datetime'
 
 const Icon = {
@@ -62,6 +63,11 @@ const Icon = {
       <path d="M14.5 4h2.6c.4 1.6 1.4 2.7 2.9 3.1V9c-1.5-.1-2.8-.6-3.8-1.5v6.2a5.2 5.2 0 1 1-5.2-5.2c.4 0 .8 0 1.2.1v2.2a3 3 0 1 0 1.9 2.9V4Z" />
     </svg>
   ),
+  shirt: ({ className = 'w-4 h-4' }) => (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 5 7 8 4 7l2-3 3-1 3 2 3-2 3 1 2 3-3 1-2-3-2 2v12H9V5Z" />
+    </svg>
+  ),
 }
 
 const getIcon = (title) => {
@@ -81,6 +87,24 @@ const formatDate = (datetime) => {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
+  }).format(date)
+}
+
+const formatDateShort = (datetime) => {
+  const date = parseActivityDateTime(datetime)
+  if (!date) return '-'
+  return new Intl.DateTimeFormat('id-ID', {
+    day: 'numeric',
+    month: 'short',
+  }).format(date)
+}
+
+const formatDateCompact = (datetime) => {
+  const date = parseActivityDateTime(datetime)
+  if (!date) return '-'
+  return new Intl.DateTimeFormat('id-ID', {
+    day: '2-digit',
+    month: '2-digit',
   }).format(date)
 }
 
@@ -117,6 +141,17 @@ export default function ActivityCard({ activity, index, onEdit, onDelete, darkMo
   const PlaceIcon = getIcon(activity.title)
   const upcoming = isUpcoming(activity.datetime)
   const today = isToday(activity.datetime)
+  const [showOutfit, setShowOutfit] = useState(false)
+  const hasOutfitData = Boolean(activity.outfit_top || activity.outfit_bottom || activity.outfit_shoes || activity.outfit_image_url)
+  const canUsePortal = typeof document !== 'undefined'
+  const startDateCompact = formatDateCompact(activity.datetime)
+  const endDateCompact = activity.end_datetime ? formatDateCompact(activity.end_datetime) : ''
+  const mobileDateRange = activity.end_datetime && startDateCompact !== endDateCompact
+    ? `${startDateCompact}-${endDateCompact}`
+    : startDateCompact
+  const mobileTimeRange = activity.end_datetime
+    ? `${formatTime(activity.datetime)}-${formatTime(activity.end_datetime)}`
+    : formatTime(activity.datetime)
 
   return (
     <div className={`group relative opacity-0 animate-fade-in-up stagger-${Math.min(index + 1, 5)}`}>
@@ -168,8 +203,13 @@ export default function ActivityCard({ activity, index, onEdit, onDelete, darkMo
             <div className={`absolute top-0 right-0 w-20 h-20 rounded-bl-[40px] rounded-tr-3xl opacity-30 ${darkMode ? 'bg-gradient-to-bl from-[#5f432f]/45' : 'bg-gradient-to-bl from-[#eadfce]'}`} />
 
             <div className="flex items-start justify-between mb-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <div className={`inline-flex flex-wrap items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium ${darkMode ? 'bg-[#5b402f] text-[#f4e6d6] border border-[#7b5a43]' : 'bg-[#eadfce] text-[#6a4a35]'}`}>
+              <div className={`sm:hidden inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-medium whitespace-nowrap w-full min-w-0 overflow-hidden ${darkMode ? 'bg-[#5b402f] text-[#f4e6d6] border border-[#7b5a43]' : 'bg-[#eadfce] text-[#6a4a35] border border-[#cfaa83]/55'}`}>
+                <Icon.clock className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate">{mobileTimeRange} • {mobileDateRange}</span>
+              </div>
+
+              <div className="hidden sm:flex flex-wrap items-center gap-2">
+                <div className={`inline-flex flex-wrap items-center gap-1.5 px-3 py-1 rounded-xl text-sm font-medium ${darkMode ? 'bg-[#4a3527] text-[#eadfce] border border-[#6b4f3b]' : 'bg-[#eadfce] text-[#6a4a35] border border-[#cfaa83]/60'}`}>
                   <Icon.clock className="w-4 h-4" />
                   <span className="text-xs font-semibold">Mulai</span>
                   <span>{formatTime(activity.datetime)}</span>
@@ -200,8 +240,7 @@ export default function ActivityCard({ activity, index, onEdit, onDelete, darkMo
             )}
 
             <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 mt-4 pt-4 border-t border-dashed border-[#cfaa83]/45">
-              {(activity.maps_url || activity.tiktok_url) && (
-                <div className="inline-flex items-center gap-2">
+              <div className="inline-flex w-full justify-center sm:w-auto sm:justify-start items-center gap-2">
                   {activity.maps_url && (
                     <a
                       href={activity.maps_url}
@@ -227,8 +266,17 @@ export default function ActivityCard({ activity, index, onEdit, onDelete, darkMo
                       <Icon.tiktok className="w-4 h-4" />
                     </a>
                   )}
-                </div>
-              )}
+
+                  <button
+                    type="button"
+                    onClick={() => setShowOutfit(true)}
+                    title="Lihat Outfit"
+                    aria-label="Lihat Outfit"
+                    className={`inline-flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-200 active:scale-95 ${darkMode ? 'bg-[#5b402f] text-[#f4e6d6] border border-[#7b5a43] hover:bg-[#6a4a35]' : 'bg-[#eadfce] text-[#3f2b1e] hover:bg-[#d2bca2]'}`}
+                  >
+                    <Icon.shirt className="w-4 h-4" />
+                  </button>
+              </div>
 
               <div className="sm:ml-auto grid grid-cols-2 sm:flex items-center gap-2">
                 <button
@@ -248,9 +296,59 @@ export default function ActivityCard({ activity, index, onEdit, onDelete, darkMo
                 </button>
               </div>
             </div>
+
           </div>
         </div>
       </div>
+
+      {showOutfit && canUsePortal && createPortal(
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center p-4 modal-backdrop animate-fade-in"
+          style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}
+          onClick={(e) => e.target === e.currentTarget && setShowOutfit(false)}
+        >
+          <div className={`w-full max-w-md rounded-3xl p-5 sm:p-6 shadow-2xl animate-modal-slide-up ${darkMode ? 'bg-[#2a1f19] border border-[#5d4332]' : 'bg-[#fffaf3] border border-[#cfaa83]/55'}`}>
+            <div className="flex items-center justify-between mb-4">
+              <h4 className={`font-display text-xl font-semibold ${darkMode ? 'text-[#eadfce]' : 'text-[#3f2b1e]'}`}>Outfit</h4>
+              <button
+                onClick={() => setShowOutfit(false)}
+                className={`w-9 h-9 rounded-xl text-lg transition-all duration-200 ${darkMode ? 'bg-[#5b402f] text-[#f4e6d6]' : 'bg-[#eadfce] text-[#6a4a35]'}`}
+              >
+                ×
+              </button>
+            </div>
+
+            {hasOutfitData ? (
+              <div className="space-y-3">
+                <p className={darkMode ? 'text-[#eadfce]' : 'text-[#3f2b1e]'}>
+                  <span className="font-semibold">Baju:</span> {activity.outfit_top || '-'}
+                </p>
+                <p className={darkMode ? 'text-[#eadfce]' : 'text-[#3f2b1e]'}>
+                  <span className="font-semibold">Celana:</span> {activity.outfit_bottom || '-'}
+                </p>
+                <p className={darkMode ? 'text-[#eadfce]' : 'text-[#3f2b1e]'}>
+                  <span className="font-semibold">Sepatu:</span> {activity.outfit_shoes || '-'}
+                </p>
+
+                {activity.outfit_image_url && (
+                  <div className={`mt-2 w-full h-52 rounded-2xl border border-[#cfaa83]/55 overflow-hidden ${darkMode ? 'bg-[#1f1611]' : 'bg-[#f8efe3]'}`}>
+                    <img
+                      src={activity.outfit_image_url}
+                      alt="Sampel outfit"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className={`text-sm ${darkMode ? 'text-[#d7c0ab]' : 'text-[#7d6049]'}`}>
+                Belum ada informasi outfit untuk kegiatan ini.
+              </p>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }

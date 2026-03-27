@@ -16,6 +16,10 @@ class Activity extends Model
         'end_datetime',
         'maps_url',
         'tiktok_url',
+        'outfit_top',
+        'outfit_bottom',
+        'outfit_shoes',
+        'outfit_image_url',
     ];
 
     protected $casts = [

@@ -10,6 +10,11 @@ const initialForm = {
   end_datetime: '',
   maps_url: '',
   tiktok_url: '',
+  outfit_top: '',
+  outfit_bottom: '',
+  outfit_shoes: '',
+  outfit_image_url: '',
+  outfit_image: null,
 }
 
 const CalendarIcon = ({ className = 'w-4 h-4' }) => (
@@ -48,6 +53,11 @@ export default function ActivityForm({ activity, onSubmit, onClose, loading, dar
         end_datetime: endDt ? formatDateTimeForApi(endDt) : '',
         maps_url: activity.maps_url || '',
         tiktok_url: activity.tiktok_url || '',
+        outfit_top: activity.outfit_top || '',
+        outfit_bottom: activity.outfit_bottom || '',
+        outfit_shoes: activity.outfit_shoes || '',
+        outfit_image_url: activity.outfit_image_url || '',
+        outfit_image: null,
       })
     } else {
       setForm(initialForm)
@@ -121,6 +131,7 @@ export default function ActivityForm({ activity, onSubmit, onClose, loading, dar
     }
     if (form.maps_url && !isValidUrl(form.maps_url)) newErrors.maps_url = 'URL Google Maps tidak valid'
     if (form.tiktok_url && !isValidUrl(form.tiktok_url)) newErrors.tiktok_url = 'URL TikTok tidak valid'
+    if (form.outfit_image && !form.outfit_image.type.startsWith('image/')) newErrors.outfit_image = 'File harus berupa gambar'
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -131,10 +142,27 @@ export default function ActivityForm({ activity, onSubmit, onClose, loading, dar
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }))
   }
 
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0] || null
+    setForm((prev) => ({ ...prev, outfit_image: file }))
+    setErrors((prev) => ({ ...prev, outfit_image: '' }))
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!validate()) return
-    onSubmit(form)
+    const payload = new FormData()
+    payload.append('title', form.title)
+    payload.append('description', form.description || '')
+    payload.append('datetime', form.datetime)
+    payload.append('end_datetime', form.end_datetime || '')
+    payload.append('maps_url', form.maps_url || '')
+    payload.append('tiktok_url', form.tiktok_url || '')
+    payload.append('outfit_top', form.outfit_top || '')
+    payload.append('outfit_bottom', form.outfit_bottom || '')
+    payload.append('outfit_shoes', form.outfit_shoes || '')
+    if (form.outfit_image) payload.append('outfit_image', form.outfit_image)
+    onSubmit(payload)
   }
 
   const inputClass = (field) => `
@@ -257,6 +285,65 @@ export default function ActivityForm({ activity, onSubmit, onClose, loading, dar
                 className={inputClass('tiktok_url')}
               />
               {errors.tiktok_url && <p className="mt-1 text-xs text-red-400">{errors.tiktok_url}</p>}
+            </div>
+
+            <div className={`rounded-2xl p-4 ${darkMode ? 'bg-[#33251e] border border-[#6b4d39]' : 'bg-[#f6ede3] border border-[#cfaa83]/45'}`}>
+              <p className={`text-sm font-semibold mb-3 ${darkMode ? 'text-[#e2c8ae]' : 'text-[#6a4a35]'}`}>Informasi Outfit</p>
+
+              <div className="space-y-3">
+                <div>
+                  <label className={labelClass}>Baju yang digunakan</label>
+                  <input
+                    type="text"
+                    name="outfit_top"
+                    value={form.outfit_top}
+                    onChange={handleChange}
+                    placeholder="contoh: Kemeja linen putih"
+                    className={inputClass('outfit_top')}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Celana yang digunakan</label>
+                  <input
+                    type="text"
+                    name="outfit_bottom"
+                    value={form.outfit_bottom}
+                    onChange={handleChange}
+                    placeholder="contoh: Celana chino coklat"
+                    className={inputClass('outfit_bottom')}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Sepatu yang digunakan</label>
+                  <input
+                    type="text"
+                    name="outfit_shoes"
+                    value={form.outfit_shoes}
+                    onChange={handleChange}
+                    placeholder="contoh: Sneakers putih"
+                    className={inputClass('outfit_shoes')}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Upload gambar sampel outfit</label>
+                  <input
+                    type="file"
+                    name="outfit_image"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className={inputClass('outfit_image')}
+                  />
+                  {errors.outfit_image && <p className="mt-1 text-xs text-red-400">{errors.outfit_image}</p>}
+                  {form.outfit_image_url && !form.outfit_image && (
+                    <p className={`mt-1 text-xs ${darkMode ? 'text-[#c2a58c]' : 'text-[#8f755f]'}`}>
+                      Gambar outfit saat ini sudah tersimpan.
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="flex gap-3 pt-2">

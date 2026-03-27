@@ -34,8 +34,23 @@ api.interceptors.response.use(
 export const activityApi = {
   getAll: (params = {}) => api.get('/activities', { params }),
   getOne: (id) => api.get(`/activities/${id}`),
-  create: (data) => api.post('/activities', data),
-  update: (id, data) => api.put(`/activities/${id}`, data),
+  create: (data) => {
+    if (data instanceof FormData) {
+      return api.post('/activities', data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+    }
+    return api.post('/activities', data)
+  },
+  update: (id, data) => {
+    if (data instanceof FormData) {
+      data.append('_method', 'PUT')
+      return api.post(`/activities/${id}`, data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+    }
+    return api.put(`/activities/${id}`, data)
+  },
   delete: (id) => api.delete(`/activities/${id}`),
 }
 

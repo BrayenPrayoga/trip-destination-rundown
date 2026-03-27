@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 
 class ActivityController extends Controller
 {
@@ -40,7 +41,18 @@ class ActivityController extends Controller
             'end_datetime' => 'nullable|date|after_or_equal:datetime',
             'maps_url'    => 'nullable|url|max:2048',
             'tiktok_url'  => 'nullable|url|max:2048',
+            'outfit_top' => 'nullable|string|max:255',
+            'outfit_bottom' => 'nullable|string|max:255',
+            'outfit_shoes' => 'nullable|string|max:255',
+            'outfit_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
         ]);
+
+        if ($request->hasFile('outfit_image')) {
+            $path = $request->file('outfit_image')->store('outfits', 'public');
+            $validated['outfit_image_url'] = Storage::url($path);
+        }
+
+        unset($validated['outfit_image']);
 
         $activity = Activity::create($validated);
 
@@ -74,7 +86,23 @@ class ActivityController extends Controller
             'end_datetime' => 'nullable|date|after_or_equal:datetime',
             'maps_url'    => 'nullable|url|max:2048',
             'tiktok_url'  => 'nullable|url|max:2048',
+            'outfit_top' => 'nullable|string|max:255',
+            'outfit_bottom' => 'nullable|string|max:255',
+            'outfit_shoes' => 'nullable|string|max:255',
+            'outfit_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
         ]);
+
+        if ($request->hasFile('outfit_image')) {
+            if (!empty($activity->outfit_image_url) && str_starts_with($activity->outfit_image_url, '/storage/')) {
+                $oldPath = ltrim(str_replace('/storage/', '', $activity->outfit_image_url), '/');
+                Storage::disk('public')->delete($oldPath);
+            }
+
+            $path = $request->file('outfit_image')->store('outfits', 'public');
+            $validated['outfit_image_url'] = Storage::url($path);
+        }
+
+        unset($validated['outfit_image']);
 
         $activity->update($validated);
 
