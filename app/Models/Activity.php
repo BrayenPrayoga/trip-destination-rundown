@@ -20,10 +20,12 @@ class Activity extends Model
         'outfit_bottom',
         'outfit_shoes',
         'outfit_image_url',
+        'price_items',
     ];
 
     protected $casts = [
         'datetime' => 'datetime',
         'end_datetime' => 'datetime',
+        'price_items' => 'array',
     ];
 }

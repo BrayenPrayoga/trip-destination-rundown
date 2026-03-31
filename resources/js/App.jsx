@@ -241,6 +241,29 @@ export default function App() {
     },
   ]
 
+  const totalPriceAllCards = filteredActivities.reduce((total, activity) => {
+    let items = []
+    if (Array.isArray(activity.price_items)) {
+      items = activity.price_items
+    } else if (typeof activity.price_items === 'string') {
+      try {
+        const parsed = JSON.parse(activity.price_items)
+        if (Array.isArray(parsed)) items = parsed
+      } catch {
+        items = []
+      }
+    }
+
+    const cardTotal = items.reduce((sum, item) => sum + Number(item?.amount || 0), 0)
+    return total + (Number.isNaN(cardTotal) ? 0 : cardTotal)
+  }, 0)
+
+  const totalPriceLabel = new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(totalPriceAllCards)
+
   return (
     <div className={`min-h-screen bg-pattern transition-colors duration-300 ${darkMode ? 'bg-[#1f1611] text-[#eadfce]' : 'text-[#3f2b1e]'}`}>
       <header
@@ -309,6 +332,12 @@ export default function App() {
                 </div>
               )
             })}
+          </div>
+
+          <div className={`mb-4 sm:mb-5 rounded-xl px-4 py-2.5 border text-center ${darkMode ? 'bg-[#33251e] border-[#5d4332]' : 'bg-[#f6ede3] border-[#cfaa83]/55'}`}>
+            <p className={`${darkMode ? 'text-white' : 'text-[#3f2b1e]'} text-sm sm:text-base font-bold`}>
+              {totalPriceLabel}
+            </p>
           </div>
 
           <div className={`rounded-2xl p-3 sm:p-0 ${darkMode ? 'bg-[#2a1f19]/85 sm:bg-transparent border border-[#5d4332] sm:border-0' : 'bg-[#f7f1e8]/80 sm:bg-transparent border border-[#cfaa83]/45 sm:border-0'}`}>

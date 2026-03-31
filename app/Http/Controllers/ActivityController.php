@@ -45,6 +45,7 @@ class ActivityController extends Controller
             'outfit_bottom' => 'nullable|string|max:255',
             'outfit_shoes' => 'nullable|string|max:255',
             'outfit_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'price_items_json' => 'nullable|string',
         ]);
 
         if ($request->hasFile('outfit_image')) {
@@ -52,7 +53,14 @@ class ActivityController extends Controller
             $validated['outfit_image_url'] = Storage::url($path);
         }
 
+        if ($request->filled('price_items_json')) {
+            $validated['price_items'] = $this->parsePriceItems($request->input('price_items_json'));
+        } else {
+            $validated['price_items'] = [];
+        }
+
         unset($validated['outfit_image']);
+        unset($validated['price_items_json']);
 
         $activity = Activity::create($validated);
 
@@ -90,6 +98,7 @@ class ActivityController extends Controller
             'outfit_bottom' => 'nullable|string|max:255',
             'outfit_shoes' => 'nullable|string|max:255',
             'outfit_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'price_items_json' => 'nullable|string',
         ]);
 
         if ($request->hasFile('outfit_image')) {
@@ -102,7 +111,14 @@ class ActivityController extends Controller
             $validated['outfit_image_url'] = Storage::url($path);
         }
 
+        if ($request->has('price_items_json')) {
+            $validated['price_items'] = $request->filled('price_items_json')
+                ? $this->parsePriceItems($request->input('price_items_json'))
+                : [];
+        }
+
         unset($validated['outfit_image']);
+        unset($validated['price_items_json']);
 
         $activity->update($validated);
 
@@ -124,5 +140,27 @@ class ActivityController extends Controller
             'success' => true,
             'message' => 'Kegiatan berhasil dihapus!',
         ]);
+    }
+
+    private function parsePriceItems(string $json): array
+    {
+        $decoded = json_decode($json, true);
+        if (!is_array($decoded)) {
+            return [];
+        }
+
+        return collect($decoded)
+            ->filter(fn ($item) => is_array($item))
+            ->map(function ($item) {
+                $description = trim((string) ($item['description'] ?? ''));
+                $amount = (float) ($item['amount'] ?? 0);
+                return [
+                    'description' => $description,
+                    'amount' => max(0, $amount),
+                ];
+            })
+            ->filter(fn ($item) => $item['description'] !== '' || $item['amount'] > 0)
+            ->values()
+            ->all();
     }
 }

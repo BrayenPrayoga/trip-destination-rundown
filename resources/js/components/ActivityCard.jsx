@@ -68,6 +68,12 @@ const Icon = {
       <path d="M9 5 7 8 4 7l2-3 3-1 3 2 3-2 3 1 2 3-3 1-2-3-2 2v12H9V5Z" />
     </svg>
   ),
+  receipt: ({ className = 'w-4 h-4' }) => (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 3h12v18l-2-1.5L14 21l-2-1.5L10 21l-2-1.5L6 21V3Z" />
+      <path d="M9 8h6M9 12h6M9 16h4" />
+    </svg>
+  ),
 }
 
 const getIcon = (title) => {
@@ -118,6 +124,15 @@ const formatTime = (datetime) => {
   }).format(date)
 }
 
+const formatCurrency = (value) => {
+  const amount = Number(value || 0)
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(Number.isNaN(amount) ? 0 : amount)
+}
+
 const isUpcoming = (datetime) => {
   const now = new Date()
   const activityTime = parseActivityDateTime(datetime)
@@ -142,8 +157,23 @@ export default function ActivityCard({ activity, index, onEdit, onDelete, darkMo
   const upcoming = isUpcoming(activity.datetime)
   const today = isToday(activity.datetime)
   const [showOutfit, setShowOutfit] = useState(false)
+  const [showPriceModal, setShowPriceModal] = useState(false)
   const hasOutfitData = Boolean(activity.outfit_top || activity.outfit_bottom || activity.outfit_shoes || activity.outfit_image_url)
   const canUsePortal = typeof document !== 'undefined'
+  const priceItems = Array.isArray(activity.price_items)
+    ? activity.price_items
+    : (() => {
+      if (typeof activity.price_items === 'string') {
+        try {
+          const parsed = JSON.parse(activity.price_items)
+          return Array.isArray(parsed) ? parsed : []
+        } catch {
+          return []
+        }
+      }
+      return []
+    })()
+  const totalPrice = priceItems.reduce((sum, item) => sum + Number(item?.amount || 0), 0)
   const startDateCompact = formatDateCompact(activity.datetime)
   const endDateCompact = activity.end_datetime ? formatDateCompact(activity.end_datetime) : ''
   const mobileDateRange = activity.end_datetime && startDateCompact !== endDateCompact
@@ -276,6 +306,16 @@ export default function ActivityCard({ activity, index, onEdit, onDelete, darkMo
                   >
                     <Icon.shirt className="w-4 h-4" />
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowPriceModal(true)}
+                    title="Lihat Harga"
+                    aria-label="Lihat Harga"
+                    className={`inline-flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-200 active:scale-95 ${darkMode ? 'bg-[#5b402f] text-[#f4e6d6] border border-[#7b5a43] hover:bg-[#6a4a35]' : 'bg-[#eadfce] text-[#3f2b1e] hover:bg-[#d2bca2]'}`}
+                  >
+                    <Icon.receipt className="w-4 h-4" />
+                  </button>
               </div>
 
               <div className="sm:ml-auto grid grid-cols-2 sm:flex items-center gap-2">
@@ -343,6 +383,58 @@ export default function ActivityCard({ activity, index, onEdit, onDelete, darkMo
             ) : (
               <p className={`text-sm ${darkMode ? 'text-[#d7c0ab]' : 'text-[#7d6049]'}`}>
                 Belum ada informasi outfit untuk kegiatan ini.
+              </p>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {showPriceModal && canUsePortal && createPortal(
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center p-4 modal-backdrop animate-fade-in"
+          style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}
+          onClick={(e) => e.target === e.currentTarget && setShowPriceModal(false)}
+        >
+          <div className={`w-full max-w-md rounded-3xl p-5 sm:p-6 shadow-2xl animate-modal-slide-up ${darkMode ? 'bg-[#2a1f19] border border-[#5d4332]' : 'bg-[#fffaf3] border border-[#cfaa83]/55'}`}>
+            <div className="flex items-center justify-between mb-4">
+              <h4 className={`font-display text-xl font-semibold ${darkMode ? 'text-[#eadfce]' : 'text-[#3f2b1e]'}`}>Keterangan Harga</h4>
+              <button
+                onClick={() => setShowPriceModal(false)}
+                className={`w-9 h-9 rounded-xl text-lg transition-all duration-200 ${darkMode ? 'bg-[#5b402f] text-[#f4e6d6]' : 'bg-[#eadfce] text-[#6a4a35]'}`}
+              >
+                ×
+              </button>
+            </div>
+
+            {priceItems.length > 0 ? (
+              <div className="space-y-3">
+                <div className="space-y-2 max-h-64 overflow-auto pr-1">
+                  {priceItems.map((item, idx) => (
+                    <div
+                      key={`${item?.description || 'item'}-${idx}`}
+                      className={`flex items-center justify-between rounded-xl px-3 py-2 ${darkMode ? 'bg-[#33251e] border border-[#5d4332]' : 'bg-[#f6ede3] border border-[#cfaa83]/45'}`}
+                    >
+                      <span className={`text-sm ${darkMode ? 'text-[#eadfce]' : 'text-[#3f2b1e]'}`}>
+                        {item?.description || `Item ${idx + 1}`}
+                      </span>
+                      <span className={`text-sm font-semibold ${darkMode ? 'text-[#e2c8ae]' : 'text-[#6a4a35]'}`}>
+                        {formatCurrency(item?.amount)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className={`flex items-center justify-between rounded-xl px-3 py-2 ${darkMode ? 'bg-[#5b402f] border border-[#7b5a43]' : 'bg-[#eadfce] border border-[#cfaa83]/55'}`}>
+                  <span className={`text-sm font-semibold ${darkMode ? 'text-[#f4e6d6]' : 'text-[#6a4a35]'}`}>Total</span>
+                  <span className={`text-base font-bold ${darkMode ? 'text-white' : 'text-[#3f2b1e]'}`}>
+                    {formatCurrency(totalPrice)}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <p className={`text-sm ${darkMode ? 'text-[#d7c0ab]' : 'text-[#7d6049]'}`}>
+                Belum ada list harga untuk kegiatan ini.
               </p>
             )}
           </div>

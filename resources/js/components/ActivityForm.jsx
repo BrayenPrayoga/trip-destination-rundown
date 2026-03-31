@@ -15,6 +15,7 @@ const initialForm = {
   outfit_shoes: '',
   outfit_image_url: '',
   outfit_image: null,
+  price_items: [],
 }
 
 const CalendarIcon = ({ className = 'w-4 h-4' }) => (
@@ -58,6 +59,7 @@ export default function ActivityForm({ activity, onSubmit, onClose, loading, dar
         outfit_shoes: activity.outfit_shoes || '',
         outfit_image_url: activity.outfit_image_url || '',
         outfit_image: null,
+        price_items: Array.isArray(activity.price_items) ? activity.price_items : [],
       })
     } else {
       setForm(initialForm)
@@ -117,6 +119,17 @@ export default function ActivityForm({ activity, onSubmit, onClose, loading, dar
     }
   }
 
+  const normalizeRupiahValue = (value) => {
+    if (value === null || value === undefined) return ''
+    return String(value).replace(/[^\d]/g, '')
+  }
+
+  const formatRupiahValue = (value) => {
+    const normalized = normalizeRupiahValue(value)
+    if (!normalized) return ''
+    return new Intl.NumberFormat('id-ID').format(Number(normalized))
+  }
+
   const validate = () => {
     const newErrors = {}
     if (!form.title.trim()) newErrors.title = 'Nama lokasi wajib diisi'
@@ -132,6 +145,14 @@ export default function ActivityForm({ activity, onSubmit, onClose, loading, dar
     if (form.maps_url && !isValidUrl(form.maps_url)) newErrors.maps_url = 'URL Google Maps tidak valid'
     if (form.tiktok_url && !isValidUrl(form.tiktok_url)) newErrors.tiktok_url = 'URL TikTok tidak valid'
     if (form.outfit_image && !form.outfit_image.type.startsWith('image/')) newErrors.outfit_image = 'File harus berupa gambar'
+    if (Array.isArray(form.price_items)) {
+      form.price_items.forEach((item, idx) => {
+        const amount = Number(normalizeRupiahValue(item?.amount || 0))
+        if (Number.isNaN(amount) || amount < 0) {
+          newErrors[`price_items_${idx}`] = 'Nominal harga tidak valid'
+        }
+      })
+    }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -148,6 +169,36 @@ export default function ActivityForm({ activity, onSubmit, onClose, loading, dar
     setErrors((prev) => ({ ...prev, outfit_image: '' }))
   }
 
+  const handlePriceItemChange = (index, field, value) => {
+    setForm((prev) => {
+      const next = [...(prev.price_items || [])]
+      next[index] = { ...(next[index] || {}), [field]: value }
+      return { ...prev, price_items: next }
+    })
+  }
+
+  const handlePriceItemAmountChange = (index, value) => {
+    setForm((prev) => {
+      const next = [...(prev.price_items || [])]
+      next[index] = { ...(next[index] || {}), amount: normalizeRupiahValue(value) }
+      return { ...prev, price_items: next }
+    })
+  }
+
+  const addPriceItem = () => {
+    setForm((prev) => ({
+      ...prev,
+      price_items: [...(prev.price_items || []), { description: '', amount: '' }],
+    }))
+  }
+
+  const removePriceItem = (index) => {
+    setForm((prev) => ({
+      ...prev,
+      price_items: (prev.price_items || []).filter((_, i) => i !== index),
+    }))
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!validate()) return
@@ -161,6 +212,7 @@ export default function ActivityForm({ activity, onSubmit, onClose, loading, dar
     payload.append('outfit_top', form.outfit_top || '')
     payload.append('outfit_bottom', form.outfit_bottom || '')
     payload.append('outfit_shoes', form.outfit_shoes || '')
+    payload.append('price_items_json', JSON.stringify(form.price_items || []))
     if (form.outfit_image) payload.append('outfit_image', form.outfit_image)
     onSubmit(payload)
   }
@@ -343,6 +395,55 @@ export default function ActivityForm({ activity, onSubmit, onClose, loading, dar
                     </p>
                   )}
                 </div>
+              </div>
+            </div>
+
+            <div className={`rounded-2xl p-4 ${darkMode ? 'bg-[#33251e] border border-[#6b4d39]' : 'bg-[#f6ede3] border border-[#cfaa83]/45'}`}>
+              <div className="flex items-center justify-between mb-3">
+                <p className={`text-sm font-semibold ${darkMode ? 'text-[#e2c8ae]' : 'text-[#6a4a35]'}`}>Keterangan Harga</p>
+                <button
+                  type="button"
+                  onClick={addPriceItem}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${darkMode ? 'bg-[#5b402f] text-[#f4e6d6] border border-[#7b5a43]' : 'bg-[#eadfce] text-[#6a4a35] border border-[#cfaa83]/55'}`}
+                >
+                  + Tambah
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {(form.price_items || []).length === 0 && (
+                  <p className={`text-xs ${darkMode ? 'text-[#c2a58c]' : 'text-[#8f755f]'}`}>
+                    Belum ada list harga.
+                  </p>
+                )}
+
+                {(form.price_items || []).map((item, idx) => (
+                  <div key={idx} className="grid grid-cols-1 sm:grid-cols-[1fr_140px_auto] gap-2">
+                    <input
+                      type="text"
+                      value={item.description || ''}
+                      onChange={(e) => handlePriceItemChange(idx, 'description', e.target.value)}
+                      placeholder="contoh: Bensin"
+                      className={inputClass(`price_items_desc_${idx}`)}
+                    />
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={formatRupiahValue(item.amount)}
+                      onChange={(e) => handlePriceItemAmountChange(idx, e.target.value)}
+                      placeholder="Rp 500.000"
+                      className={inputClass(`price_items_${idx}`)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removePriceItem(idx)}
+                      className={`px-3 py-2 rounded-xl text-sm font-medium ${darkMode ? 'bg-[#5d2727]/50 text-[#f0c4c4] border border-[#7d3a3a]' : 'bg-[#f3dede] text-[#7a2f2f]'}`}
+                    >
+                      Hapus
+                    </button>
+                    {errors[`price_items_${idx}`] && <p className="text-xs text-red-400 sm:col-span-3">{errors[`price_items_${idx}`]}</p>}
+                  </div>
+                ))}
               </div>
             </div>
 
